@@ -1,0 +1,48 @@
+profile:{
+    image,
+    first_name,
+    last_name,
+    bio,
+    prone_number ,
+    email, 
+    log_out
+    birth_date
+    update_profile
+}
+notifications{
+list of requests {
+    notification:{
+    img,
+    first_name,
+    last_name,
+    accept / reject,
+   } 
+    }
+}
+
+list of friends {
+search()
+friend{
+    chat/dellet friend/view profile
+}
+crete groupe
+}
+
+list_chats_page{
+    search()
+    list_of_friends or Groupe{
+
+    }
+}
+
+chat-page{
+
+}
+
+login{
+
+}
+
+signe_up{
+    
+}
