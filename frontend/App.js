@@ -1,10 +1,12 @@
-import { View } from "react-native";
-import Profile from "./Pages/Profile";
-
+import { GlobalState } from "./context/GlobalState"; // Wrap with global state provider
+import { NavigationContainer } from "@react-navigation/native";
+import Tabs from "./navigation/Tabs";
 export default function App() {
   return (
-    <View>
-      <Profile />
-    </View>
+    <NavigationContainer>
+      <GlobalState>
+        <Tabs />
+      </GlobalState>
+    </NavigationContainer>
   );
 }
