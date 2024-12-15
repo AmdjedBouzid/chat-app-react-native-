@@ -4,7 +4,8 @@ const cors = require("cors");
 const http = require("http");
 const { Server } = require("socket.io");
 // Routes
-const testRoute = require("./routes/test");
+const authRoute = require("./routes/auth");
+const usersRoute = require("./routes/users");
 
 const app = express();
 
@@ -14,7 +15,10 @@ app.use(cors({ origin: "*" }));
 app.use(express.json());
 
 // Define Routes
-app.use("/api/test", testRoute);
+
+app.use("/api/auth", authRoute);
+app.use("/api/users", usersRoute);
+
 app.use("/", (req, res) => {
   return res.status(200).send("Welcome to my stylish page!");
 });
