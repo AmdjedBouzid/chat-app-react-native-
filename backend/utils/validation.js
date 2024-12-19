@@ -1,14 +1,63 @@
-const z = require("zod");
+const { z } = require("zod");
 
-const userSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  email: z.string().email("Invalid email address"),
+const loginSchema = z.object({
+  email: z
+    .string({ required_error: "Email is required" }) // Require the email field
+    .nonempty({ message: "Email is required" }) // Ensure email is not empty
+    .email({ message: "Invalid email address" }), // Validate email format
+
   password: z
-    .string()
-    .min(8, "Password must be at least 8 characters long")
-    .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
-    .regex(/[a-z]/, "Password must contain at least one lowercase letter")
-    .regex(/[0-9]/, "Password must contain at least one number"),
+    .string({ required_error: "Password is required" }) // Require the password field
+    .nonempty({ message: "Password is required" }) // Ensure password is not empty
+    .min(6, { message: "Password must be at least 6 characters long" }) // Validate minimum length
+    .refine(
+      (value) => /[0-9]/.test(value), // Ensure it contains at least one digit
+      { message: "Password must contain at least one digit" }
+    )
+    .refine(
+      (value) => /[a-z]/.test(value), // Ensure it contains at least one lowercase letter
+      { message: "Password must contain at least one lowercase letter" }
+    ),
 });
 
-module.exports = userSchema;
+const nameRegex = /^[a-zA-Z]+$/; // Only allows letters and numbers
+
+const registrationSchema = z.object({
+  first_name: z
+    .string()
+    .nonempty({ message: "first name is required" })
+    .min(3, { message: "Username must be at least 3 characters long" })
+    .max(20, { message: "Username must be at most 20 characters long" })
+    .regex(nameRegex, {
+      message: "Username must not contain special characters",
+    }),
+
+  last_name: z
+    .string()
+    .nonempty({ message: "last name is required" })
+    .min(2, { message: "Last name must be at least 2 characters long" })
+    .max(50, { message: "Last name must be at most 50 characters long" })
+    .regex(nameRegex, {
+      message: "Last name must not contain special characters",
+    }),
+
+  email: z
+    .string({ required_error: "Email is required" }) // Require the email field
+    .nonempty({ message: "Email is required" }) // Ensure email is not empty
+    .email({ message: "Invalid email address" }), // Validate email format
+
+  password: z
+    .string({ required_error: "Password is required" }) // Require the password field
+    .nonempty({ message: "Password is required" }) // Ensure password is not empty
+    .min(6, { message: "Password must be at least 6 characters long" }) // Validate minimum length
+    .refine(
+      (value) => /[0-9]/.test(value), // Ensure it contains at least one digit
+      { message: "Password must contain at least one digit" }
+    )
+    .refine(
+      (value) => /[a-z]/.test(value), // Ensure it contains at least one lowercase letter
+      { message: "Password must contain at least one lowercase letter" }
+    ),
+});
+
+module.exports = { loginSchema, registrationSchema };

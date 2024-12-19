@@ -4,7 +4,7 @@ const db = require("../config/db");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const asyncHandler = require("express-async-handler");
-const userSchema = require("../utils/validation");
+const { loginSchema, registrationSchema } = require("../utils/validation");
 
 const SECRET_KEY = process.env.JWT_SECRET; // Replace with a secure key or load from .env
 
@@ -17,8 +17,18 @@ router.post(
   "/register",
   asyncHandler(async (req, res) => {
     const { first_name, last_name, email, password } = req.body;
+    const validation = registrationSchema.safeParse({
+      first_name,
+      last_name,
+      email,
+      password,
+    });
+    if (!validation.success) {
+      return res
+        .status(400)
+        .json({ message: validation.error.errors[0].message });
+    }
 
-    // Check if user with the provided email already exists
     const [existingUser] = await db.query(
       `SELECT * FROM user WHERE email = ?`,
       [email]
@@ -75,6 +85,13 @@ router.post(
       return res
         .status(400)
         .json({ message: "Email and password are required." });
+    }
+    const validation = loginSchema.safeParse(req.body);
+
+    if (!validation.success) {
+      return res.status(400).json({
+        message: validation.error.errors[0]?.message, // Access the first validation error
+      });
     }
 
     // Find the user in the database

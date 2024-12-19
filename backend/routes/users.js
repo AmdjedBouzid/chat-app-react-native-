@@ -180,4 +180,28 @@ router.post(
   })
 );
 
+/**
+ * @route   GET /me
+ * @desc    Reject a request
+ * @access  Private
+ */
+router.get(
+  "/me",
+  asyncHandler(async (req, res) => {
+    const ID = getCurrentUserId(req, res);
+    const [users] = await db.query(`SELECT * FROM user WHERE id = ${ID}`);
+    if (users.length === 0) {
+      return res.json({ message: "user not found" }).status(404);
+    }
+    const { id, image, first_name, last_name, bio, email, birth_date } =
+      users[0];
+
+    return res
+      .json({
+        user: { id, image, first_name, last_name, bio, email, birth_date },
+        message: "user found",
+      })
+      .status(200);
+  })
+);
 module.exports = router;
