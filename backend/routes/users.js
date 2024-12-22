@@ -4,7 +4,18 @@ const db = require("../config/db");
 const asyncHandler = require("express-async-handler");
 const jwt = require("jsonwebtoken");
 const { getCurrentUserId } = require("../utils/functions");
+const multer = require("multer");
+const path = require("path");
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, path.join(__dirname, "../images")); // Directory to store images
+  },
+  filename: function (req, file, cb) {
+    cb(null, new Date().toISOString().replace(/:/g, "-") + file.originalname); // Unique file name
+  },
+});
 
+const upload = multer({ storage });
 /**
  * @route   POST /addfriend/:id
  * @desc    Add a friend (create a friendship between the current user and another user)
@@ -66,120 +77,6 @@ router.post(
   })
 );
 
-router.get(
-  "/requests",
-  asyncHandler(async (req, res) => {
-    try {
-      const currentUserId = getCurrentUserId(req, res);
-
-      // Query to get all requests where the current user is either the sender or receiver
-      const [requests] = await db.query(
-        "SELECT * FROM request WHERE idReceiver = ? AND state = 'waiting'",
-        [currentUserId]
-      );
-
-      res.status(200).json({ requests });
-    } catch (err) {
-      res.status(401).json({ message: err.message });
-    }
-  })
-);
-
-/**
- * @route   POST /requests/accept/:idSender
- * @desc    Accept a request
- * @access  Private
- */
-router.post(
-  "/requests/accept/:idSender",
-  asyncHandler(async (req, res) => {
-    const { idSender } = req.params;
-    const currentUserId = getCurrentUserId(req, res);
-
-    const [request] = await db.query(
-      "SELECT * FROM request WHERE idSender = ? AND idReceiver = ? AND state = 'waiting'",
-      [idSender, currentUserId]
-    );
-
-    if (request.length === 0) {
-      return res
-        .status(404)
-        .json({ message: "Request not found or already accepted/rejected." });
-    }
-
-    const currentDate = new Date().toISOString().slice(0, 19).replace("T", " ");
-
-    await db.query(
-      "UPDATE request SET state = 'accepted' WHERE idSender = ? AND idReceiver = ?",
-      [idSender, currentUserId]
-    );
-
-    await db.query(
-      "UPDATE request SET dateAcceptingRejecting = ? WHERE idSender = ? AND idReceiver = ?",
-      [currentDate, idSender, currentUserId]
-    );
-
-    await db.query(
-      "INSERT INTO friends (idUser1, idUser2, dateAcceptingRequest) VALUES (?, ?, ?)",
-      [idSender, currentUserId, currentDate]
-    );
-
-    res.status(200).json({
-      message: "Request accepted successfully",
-      request: {
-        idSender,
-        idReceiver: currentUserId,
-        state: "accepted",
-      },
-    });
-  })
-);
-
-/**
- * @route   POST /requests/reject/:idSender
- * @desc    Reject a request
- * @access  Private
- */
-router.post(
-  "/requests/reject/:idSender",
-  asyncHandler(async (req, res) => {
-    const { idSender } = req.params;
-    const currentUserId = getCurrentUserId(req, res);
-
-    const [request] = await db.query(
-      "SELECT * FROM request WHERE idSender = ? AND idReceiver = ? AND state = 'waiting'",
-      [idSender, currentUserId]
-    );
-
-    if (request.length === 0) {
-      return res
-        .status(404)
-        .json({ message: "Request not found or already accepted/rejected." });
-    }
-
-    const currentDate = new Date().toISOString().slice(0, 19).replace("T", " ");
-
-    await db.query(
-      "UPDATE request SET state = 'rejected' WHERE idSender = ? AND idReceiver = ?",
-      [idSender, currentUserId]
-    );
-
-    await db.query(
-      "UPDATE request SET dateAcceptingRejecting = ? WHERE idSender = ? AND idReceiver = ?",
-      [currentDate, idSender, currentUserId]
-    );
-
-    res.status(200).json({
-      message: "Request rejected successfully",
-      request: {
-        idSender,
-        idReceiver: currentUserId,
-        state: "rejected",
-      },
-    });
-  })
-);
-
 /**
  * @route   GET /me
  * @desc    Reject a request
@@ -188,7 +85,9 @@ router.post(
 router.get(
   "/me",
   asyncHandler(async (req, res) => {
+    console.log(req.headers.authorization);
     const ID = getCurrentUserId(req, res);
+
     const [users] = await db.query(`SELECT * FROM user WHERE id = ${ID}`);
     if (users.length === 0) {
       return res.json({ message: "user not found" }).status(404);
@@ -204,4 +103,61 @@ router.get(
       .status(200);
   })
 );
+
+router.post("/me", upload.single("image"), async (req, res) => {
+  try {
+    console.log(req.body);
+    const id = getCurrentUserId(req, res); // Assume this retrieves the user ID correctly
+    if (!id) return res.status(401).json({ message: "Unauthorized" });
+    const { first_name, last_name, email, birth_date, bio } = req.body;
+    console.log(req.body);
+    const imagePath = req.file ? req.file.path : null;
+    console.log(imagePath);
+
+    if (!req.file) {
+      return res.status(400).json({ message: "No file uploaded." });
+    }
+
+    // const domainName = `${req.protocol}://${req.get("host")}`;
+    const toStorImagePath = `https://l0f7sf06-5000.euw.devtunnels.ms/${imagePath
+      .split("\\")
+      .pop()}`;
+
+    // console.log("toStorImagePath++++", toStorImagePath);
+
+    const query = `
+      UPDATE user
+      SET first_name = ?, last_name = ?, email = ?, birth_date = ?, bio = ?, image = ?
+      WHERE id = ?
+    `;
+
+    await db.query(query, [
+      first_name,
+      last_name,
+      email,
+      birth_date,
+      bio,
+      toStorImagePath,
+      id,
+    ]);
+
+    res.status(200).json({
+      message: "User profile updated successfully!",
+      user: {
+        id,
+        first_name,
+        last_name,
+        email,
+        birth_date,
+        bio,
+        image: toStorImagePath,
+      },
+    });
+  } catch (error) {
+    console.error(error);
+    res
+      .status(500)
+      .json({ message: "An error occurred while updating the user profile." });
+  }
+});
 module.exports = router;

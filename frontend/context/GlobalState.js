@@ -2,8 +2,9 @@ import axios from "axios";
 import React, { createContext, useContext, useState, useEffect } from "react";
 // import AsyncStorage from "@react-native-async-storage/async-storage";
 import DOMAIN from "../utils/constants";
+import getToken from "../utils/functions";
 const globalContext = createContext();
-
+import AsyncStorage from "@react-native-async-storage/async-storage";
 export const statesContainer = () => useContext(globalContext);
 
 export const GlobalState = ({ children }) => {
@@ -11,7 +12,8 @@ export const GlobalState = ({ children }) => {
   useEffect(() => {
     const getUser = async () => {
       try {
-        const token = localStorage.getItem("Token");
+        const token = await getToken();
+        console.log("token++++++++", token);
         const response = await axios.get(`${DOMAIN}/api/users/me`, {
           headers: {
             Authorization: `Bearer ${token}`,

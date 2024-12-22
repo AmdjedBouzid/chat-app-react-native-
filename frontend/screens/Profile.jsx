@@ -14,28 +14,20 @@ import ToastUtils from "../utils/Toast";
 import Toast from "react-native-toast-message";
 import axios from "axios";
 import DOMAIN from "../utils/constants";
+import getToken from "../utils/functions";
 import Feather from "@expo/vector-icons/Feather";
 import * as ImagePicker from "expo-image-picker";
-
+import AsyncStorage from "@react-native-async-storage/async-storage";
 const ProfilePage = () => {
   const [loading, setLoading] = useState(false);
   const { user, setUser } = statesContainer();
   const [firstName, setFirstName] = useState(user.first_name || "first name");
   const [lastName, setLastName] = useState(user.last_name || "last name");
   const [email, setEmail] = useState(user.email || "example@gmail.com");
-  const [phoneNumber, setPhoneNumber] = useState(
-    user.phone_number || "07 --------"
-  );
-  const [profileImage, setProfileImage] = useState(null);
+  const [profileImage, setProfileImage] = useState(user.image || null);
   const [birthDate, setBirthDate] = useState(user.birth_date || "--/--/--");
   const [bio, setBio] = useState(user.bio || "my bio");
 
-  const handleLogout = () => {
-    setLoading(true);
-    localStorage.removeItem("Token");
-    setUser(null);
-    setLoading(false);
-  };
   const handleUpdateProfile = async () => {
     setLoading(true);
     try {
@@ -43,35 +35,34 @@ const ProfilePage = () => {
       formData.append("first_name", firstName);
       formData.append("last_name", lastName);
       formData.append("email", email);
-      formData.append("phone_number", phoneNumber);
       formData.append("birth_date", birthDate);
       formData.append("bio", bio);
-      // Append the profile image if it exists
-      if (profileImage) {
-        formData.append("profile_image", {
-          uri: profileImage,
-          name: "profile.jpg",
-          type: "image/jpeg",
-        });
-      }
+      // console.log("profile img _____", profileImage);
+      formData.append("image", {
+        uri: profileImage,
+        name: "image.jpg",
+        type: "image/jpeg",
+      });
 
-      const response = await axios.put(`${DOMAIN}/api/users/me`, formData, {
+      // console.log("FormData Contents:", formData);
+      const token = await getToken();
+      const response = await axios.post(`${DOMAIN}/api/users/me`, formData, {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("Token")}`,
+          Authorization: `Bearer ${token}`,
           "Content-Type": "multipart/form-data",
         },
       });
-
       if (response.status === 200) {
         setUser(response.data.user);
+        // console.log(response.data);
         ToastUtils.showSuccessToast("Profile updated successfully!");
+        setLoading(false);
       }
     } catch (error) {
       const errorMessage =
         error.response?.data?.message ||
         "An error occurred while updating the profile.";
       ToastUtils.showErrorToast(errorMessage);
-    } finally {
       setLoading(false);
     }
   };
@@ -79,9 +70,10 @@ const ProfilePage = () => {
   useEffect(() => {
     const handleGettingUserData = async () => {
       try {
+        const token = await getToken();
         const response = await axios.get(`${DOMAIN}/api/users/me`, {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("Token")}`,
+            authorization: `Bearer ${token}`,
           },
         });
 
@@ -118,7 +110,15 @@ const ProfilePage = () => {
       );
     }
   };
-
+  const handleLogout = () => {
+    setLoading(true);
+    AsyncStorage.removeItem("Token");
+    setUser(null);
+    setLoading(false);
+  };
+  useEffect(() => {
+    // console.log("profileImage_______", profileImage);
+  }, [profileImage]);
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.profileContainer}>
@@ -168,16 +168,6 @@ const ProfilePage = () => {
             onChangeText={(text) => setEmail(text)}
           />
         </View>
-
-        {/* <View style={styles.inputContainer}>
-          <Text style={styles.label}>Phone Number</Text>
-          <TextInput
-            style={styles.input}
-            value={phoneNumber}
-            onChangeText={(text) => setPhoneNumber(text)}
-          />
-        </View> */}
-
         <View style={styles.inputContainer}>
           <Text style={styles.label}>Birth Date</Text>
           <TextInput
@@ -244,8 +234,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   profileImage: {
-    width: "90%",
-    height: "90%",
+    width: "100%",
+    height: "100%",
+    borderRadius: 50,
   },
   inputContainer: {
     width: "100%",

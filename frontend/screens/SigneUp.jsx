@@ -10,6 +10,7 @@ import {
   ScrollView,
   Image,
 } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import ToastUtils from "../utils/Toast";
 import Toast from "react-native-toast-message";
 import axios from "axios";
@@ -36,7 +37,7 @@ const SignupPage = ({ navigation }) => {
       };
       const response = await axios.post(`${DOMAIN}/api/auth/register`, data);
       if (response.status === 201) {
-        localStorage.setItem("Token", response.data.token);
+        AsyncStorage.setItem("Token", response.data.token);
         setUser(response?.data?.user);
       }
     } catch (error) {

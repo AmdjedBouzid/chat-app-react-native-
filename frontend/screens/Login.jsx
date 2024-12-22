@@ -34,11 +34,9 @@ const LoginPage = ({ navigation }) => {
 
       if (response.status === 200) {
         const { token, user } = response.data;
-        localStorage.setItem("Token", token); // Use AsyncStorage for React Native
+        console.log(response.data);
+        AsyncStorage.setItem("Token", token); // Use AsyncStorage for React Native
         setUser(user);
-
-        // Navigate to the main app flow
-        navigation.navigate("MainAppFlow");
       }
     } catch (error) {
       const errorMessage =

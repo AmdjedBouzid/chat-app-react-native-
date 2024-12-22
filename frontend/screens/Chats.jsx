@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   FlatList,
 } from "react-native";
+import { CLOUDINARY_CLOUD_NAME, CLOUDINARY_UPLOAD_PRESET } from "@env";
 
 const ChatsScreen = ({ navigation }) => {
   const chats = [
@@ -13,6 +14,7 @@ const ChatsScreen = ({ navigation }) => {
     { id: "2", name: "Chat 2" },
     { id: "3", name: "Chat 3" },
   ];
+  // console.log("---------", CLOUDINARY_CLOUD_NAME);
 
   const handleChatClick = (chatId) => {
     // Navigate to the ChatDetails screen and pass the chatId as a parameter

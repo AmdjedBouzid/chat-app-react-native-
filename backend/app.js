@@ -2,10 +2,13 @@ const express = require("express");
 const morgan = require("morgan");
 const cors = require("cors");
 const http = require("http");
+const path = require("path");
 const { Server } = require("socket.io");
 // Routes
 const authRoute = require("./routes/auth");
 const usersRoute = require("./routes/users");
+const testRoute = require("./routes/test");
+const notificationsRoute = require("./routes/notifications");
 
 const app = express();
 
@@ -13,12 +16,15 @@ const app = express();
 app.use(morgan("dev"));
 app.use(cors("*"));
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(express.static(path.join(__dirname, "images")));
 
 // Define Routes
 
 app.use("/api/auth", authRoute);
 app.use("/api/users", usersRoute);
-
+app.use("/api/test", testRoute);
+app.use("/api/notifications", notificationsRoute);
 app.use("/", (req, res) => {
   return res.status(200).send("Welcome to my stylish page!");
 });

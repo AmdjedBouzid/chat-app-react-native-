@@ -4,8 +4,9 @@ import Chats from "../screens/Chats";
 import ChatDetails from "../screens/chatDetailes";
 import Profile from "../screens/Profile";
 // import Users from "../screens/Users";
+import NotificationsPage from "../screens/notificationScreen";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-
+import TestUploadScreen from "../screens/testScreen";
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 const ChatsStack = () => (
@@ -26,10 +27,16 @@ const MainAppFlow = () => (
       options={{ title: "Chats" }}
     />
     <Tab.Screen
+      name="notifications"
+      component={NotificationsPage}
+      options={{ title: "notification" }}
+    />
+    <Tab.Screen
       name="Profile"
       component={Profile}
       options={{ title: "Profile" }}
     />
+    {/* <Tab.Screen name="test" component={TestUploadScreen} /> */}
   </Tab.Navigator>
 );
 
