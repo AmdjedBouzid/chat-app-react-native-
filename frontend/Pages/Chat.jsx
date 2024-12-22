@@ -19,6 +19,7 @@ const ChatPage = () => {
     { id: "1", text: "Hello!", sender: "friend" },
     { id: "2", text: "Hi! How are you?", sender: "user" },
     { id: "3", text: "I'm good, thanks!", sender: "friend" },
+    
   ]);
   const [messageText, setMessageText] = useState("");
 
@@ -175,6 +176,7 @@ const styles = StyleSheet.create({
   imageMessage: {
     width: 200,
     height: 200,
+    borderWidth: 1,
     borderRadius: 10,
     marginTop: 10,
   },

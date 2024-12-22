@@ -72,6 +72,8 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#f0f2f5",
     padding: 40,
+    width: '100%',
+    height: '100%',
   },
   header: {
     fontSize: 24,
@@ -90,13 +92,14 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
   listContainer: {
-    paddingBottom: 20,
+    flex: 1, // This makes it expand to fill available space
+    width: "100%",
   },
   friendCard: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#fff",
-    padding: 8,
+    padding: 15,
     borderRadius: 8,
     marginBottom: 10,
     shadowColor: "#000",
@@ -104,6 +107,7 @@ const styles = StyleSheet.create({
     shadowRadius: 5,
     shadowOffset: { width: 0, height: 2 },
     elevation: 3,
+    width: "100%",
   },
   avatar: {
     width: 50,
