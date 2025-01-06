@@ -33,10 +33,12 @@
     "react-native-screens": "~4.1.0",
     "react-native-toast-message": "^2.2.1",
     "react-native-vector-icons": "^10.2.0",
-    "react-native-web": "^0.19.13"
+    "react-native-web": "^0.19.13",
+    "socket.io-client": "^4.8.1"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
+    "@babel/plugin-transform-private-methods": "^7.25.9",
     "metro-react-native-babel-preset": "^0.77.0"
   },
   "private": true

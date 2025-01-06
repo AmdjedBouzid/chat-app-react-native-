@@ -127,4 +127,40 @@ router.post(
   })
 );
 
+router.get(
+  "/all",
+  asyncHandler(async (req, res) => {
+    try {
+      const currentUserId = getCurrentUserId(req, res);
+
+      const [requests] = await db.query(
+        `SELECT 
+           request.*, 
+           user.id AS userId, 
+           user.first_name, 
+           user.last_name, 
+           user.image 
+         FROM 
+           request 
+         INNER JOIN 
+           user 
+         ON 
+           request.idReceiver = user.id 
+         WHERE 
+         ( request.idSender = ? 
+           OR
+           request.idReceiver =?
+      )
+           AND 
+           request.state = ?`,
+        [currentUserId, currentUserId, "waiting"]
+      );
+
+      res.status(200).json({ requests });
+    } catch (err) {
+      console.error(err);
+      res.status(401).json({ message: err.message });
+    }
+  })
+);
 module.exports = router;

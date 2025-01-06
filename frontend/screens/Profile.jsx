@@ -14,11 +14,14 @@ import ToastUtils from "../utils/Toast";
 import Toast from "react-native-toast-message";
 import axios from "axios";
 import DOMAIN from "../utils/constants";
-import getToken from "../utils/functions";
+import { getToken } from "../utils/functions";
 import Feather from "@expo/vector-icons/Feather";
 import * as ImagePicker from "expo-image-picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useIsFocused } from "@react-navigation/native";
 const ProfilePage = () => {
+  const isFocused = useIsFocused();
+
   const [loading, setLoading] = useState(false);
   const { user, setUser } = statesContainer();
   const [firstName, setFirstName] = useState(user.first_name || "first name");
@@ -48,7 +51,7 @@ const ProfilePage = () => {
       const token = await getToken();
       const response = await axios.post(`${DOMAIN}/api/users/me`, formData, {
         headers: {
-          Authorization: `Bearer ${token}`,
+          authorization: `Bearer ${token}`,
           "Content-Type": "multipart/form-data",
         },
       });
@@ -79,6 +82,7 @@ const ProfilePage = () => {
 
         if (response.status === 200) {
           setUser(response.data.user);
+          console.log(response.data.user);
         }
       } catch (error) {
         const errorMessage =
@@ -88,7 +92,7 @@ const ProfilePage = () => {
     };
 
     handleGettingUserData();
-  }, []);
+  }, [isFocused]);
 
   const handlePickImage = async () => {
     const permissionResult =

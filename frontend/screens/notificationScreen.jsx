@@ -8,14 +8,25 @@ import {
   StyleSheet,
   Dimensions,
 } from "react-native";
-import getToken from "../utils/functions";
+import { useIsFocused } from "@react-navigation/native";
+import { getToken } from "../utils/functions";
 import axios from "axios";
 import DOMAIN from "../utils/constants";
 import ToastUtils from "../utils/Toast";
 const { width, height } = Dimensions.get("window");
-
+import { statesContainer } from "../context/GlobalState";
 const NotificationsPage = () => {
-  const [notifications, setNotifications] = useState([]);
+  const isFocused = useIsFocused();
+
+  const {
+    users,
+    friends,
+    user,
+    setFriends,
+    setUsers,
+    setNotifications,
+    notifications,
+  } = statesContainer();
   useEffect(() => {
     const handleGettingRequests = async () => {
       try {
@@ -26,7 +37,7 @@ const NotificationsPage = () => {
           },
         });
         if (response.status === 200) {
-          console.log("data___", response.data.requests);
+          // console.log("data___", response.data.requests);
           setNotifications(response.data.requests);
         }
       } catch (error) {
@@ -34,30 +45,45 @@ const NotificationsPage = () => {
       }
     };
     handleGettingRequests();
-  }, []);
+  }, [isFocused]);
 
   const handleAccept = async (id) => {
     try {
       const token = await getToken();
-      console.log("token______", token);
       const response = await axios.post(
-        `${DOMAIN}/api/notifications/accept/${id}`, // Correct endpoint
-        null, // No body is needed for this request
+        `${DOMAIN}/api/notifications/accept/${id}`,
+        null,
         {
           headers: {
             authorization: `Bearer ${token}`,
           },
         }
       );
-      if (response.status === 200) {
-        setNotifications(
-          notifications.filter((notification) => notification.id !== id)
-        );
-        ToastUtils.showSuccessToast(response.data.message);
+      // console.log(response);
+
+      // console.log("hoiiiiiiiiiiii");
+      // console.log("notifications______", notifications);
+      setNotifications((prev) =>
+        prev.filter((notification) => notification.id !== id)
+      );
+
+      const currentNotification = notifications.filter((n) => n.id === id);
+      const currentUserSenderId = currentNotification[0].idSender;
+      const currentUserSender = users.filter(
+        (user) => user.id === currentUserSenderId
+      )[0];
+      console.log("currentUserSender:", currentUserSender);
+      if (currentUserSender) {
+        // console.log("friends:", friends);
+        setFriends((prev) => {
+          const updatedFriends = [...prev, currentUserSender];
+          // console.log("Updated friends:", updatedFriends);
+          return updatedFriends;
+        });
       }
+
+      ToastUtils.showSuccessToast(response.data.message);
     } catch (error) {
-      console.error("Error accepting request:", error);
-      // Adjusted to properly access error message
       const errorMessage =
         error.response?.data?.message || "An error occurred.";
       ToastUtils.showErrorToast(errorMessage);
@@ -85,7 +111,7 @@ const NotificationsPage = () => {
       }
     } catch (error) {
       console.error("Error rejecting request:", error);
-      // Adjusted to properly access error message
+
       const errorMessage =
         error.response?.data?.message || "An error occurred.";
       ToastUtils.showErrorToast(errorMessage);

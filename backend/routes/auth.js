@@ -17,6 +17,8 @@ router.post(
   "/register",
   asyncHandler(async (req, res) => {
     const { first_name, last_name, email, password } = req.body;
+    console.log("data:", req.body);
+
     const validation = registrationSchema.safeParse({
       first_name,
       last_name,
@@ -127,6 +129,9 @@ router.post(
         first_name: user[0].first_name,
         last_name: user[0].last_name,
         email: user[0].email,
+        image: user[0].image,
+        bio: user[0].bio,
+        birth_date: user[0].birth_date,
       },
       token,
     });

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   StyleSheet,
   Text,
@@ -7,110 +7,89 @@ import {
   FlatList,
   TextInput,
   TouchableOpacity,
-  Dimensions,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-const friends = [
-  {
-    id: "1",
-    name: "John Doe",
-    status: "Online",
-    avatar:
-      "https://t4.ftcdn.net/jpg/06/08/55/73/360_F_608557356_ELcD2pwQO9pduTRL30umabzgJoQn5fnd.jpg",
-  },
-  {
-    id: "2",
-    name: "Jane Smith",
-    status: "Offline",
-    avatar:
-      "https://cdn.create.vista.com/api/media/small/278886198/stock-photo-close-up-portrait-of-african-american-guy-talking-by-phone",
-  },
-  {
-    id: "3",
-    name: "Alice Brown",
-    status: "Online",
-    avatar:
-      "https://easy-peasy.ai/cdn-cgi/image/quality=80,format=auto,width=700/https://fdczvxmwwjwpwbeeqcth.supabase.co/storage/v1/object/public/images/50dab922-5d48-4c6b-8725-7fd0755d9334/3a3f2d35-8167-4708-9ef0-bdaa980989f9.png",
-  },
-  {
-    id: "4",
-    name: "Alice Brown",
-    status: "Online",
-    avatar:
-      "https://easy-peasy.ai/cdn-cgi/image/quality=80,format=auto,width=700/https://fdczvxmwwjwpwbeeqcth.supabase.co/storage/v1/object/public/images/50dab922-5d48-4c6b-8725-7fd0755d9334/3a3f2d35-8167-4708-9ef0-bdaa980989f9.png",
-  },
-  {
-    id: "5",
-    name: "Alice Brown",
-    status: "Online",
-    avatar:
-      "https://easy-peasy.ai/cdn-cgi/image/quality=80,format=auto,width=700/https://fdczvxmwwjwpwbeeqcth.supabase.co/storage/v1/object/public/images/50dab922-5d48-4c6b-8725-7fd0755d9334/3a3f2d35-8167-4708-9ef0-bdaa980989f9.png",
-  },
-  {
-    id: "6",
-    name: "Alice Brown",
-    status: "Online",
-    avatar:
-      "https://easy-peasy.ai/cdn-cgi/image/quality=80,format=auto,width=700/https://fdczvxmwwjwpwbeeqcth.supabase.co/storage/v1/object/public/images/50dab922-5d48-4c6b-8725-7fd0755d9334/3a3f2d35-8167-4708-9ef0-bdaa980989f9.png",
-  },
-  {
-    id: "7",
-    name: "Alice Brown",
-    status: "Online",
-    avatar:
-      "https://easy-peasy.ai/cdn-cgi/image/quality=80,format=auto,width=700/https://fdczvxmwwjwpwbeeqcth.supabase.co/storage/v1/object/public/images/50dab922-5d48-4c6b-8725-7fd0755d9334/3a3f2d35-8167-4708-9ef0-bdaa980989f9.png",
-  },
-  {
-    id: "8",
-    name: "Alice Brown",
-    status: "Online",
-    avatar:
-      "https://easy-peasy.ai/cdn-cgi/image/quality=80,format=auto,width=700/https://fdczvxmwwjwpwbeeqcth.supabase.co/storage/v1/object/public/images/50dab922-5d48-4c6b-8725-7fd0755d9334/3a3f2d35-8167-4708-9ef0-bdaa980989f9.png",
-  },
-  {
-    id: "9",
-    name: "Alice Brown",
-    status: "Online",
-    avatar:
-      "https://easy-peasy.ai/cdn-cgi/image/quality=80,format=auto,width=700/https://fdczvxmwwjwpwbeeqcth.supabase.co/storage/v1/object/public/images/50dab922-5d48-4c6b-8725-7fd0755d9334/3a3f2d35-8167-4708-9ef0-bdaa980989f9.png",
-  },
-];
-
+import { fetchChats } from "../utils/functions";
+import { useIsFocused } from "@react-navigation/native";
+import { statesContainer } from "../context/GlobalState";
 const ChatsScreen = () => {
+  const isFocused = useIsFocused();
   const navigation = useNavigation();
   const [searchQuery, setSearchQuery] = useState("");
+  // const [chats, setChats] = useState([]);
+  const { chats, setChats } = statesContainer();
 
-  const filteredFriends = friends.filter((friend) =>
-    friend.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  useEffect(() => {
+    const fetchData = async () => {
+      const CHATS = await fetchChats();
+      console.log("CHATS___:::::___", CHATS);
+      setChats(CHATS);
+    };
+    fetchData();
+  }, [isFocused]);
 
-  const renderFriendItem = ({ item }) => (
-    <TouchableOpacity
-      style={styles.friendCard}
-      onPress={() => navigation.navigate("ChatDetails", { id: item.id })}
-    >
-      <Image source={{ uri: item.avatar }} style={styles.avatar} />
-      <View style={styles.infoContainer}>
-        <Text style={styles.name}>{item.name}</Text>
-        <Text style={styles.status}>{item.status}</Text>
-      </View>
-    </TouchableOpacity>
-  );
-  // ChatDetailsScreen
+  // Filter chats based on the search query
+  var filteredChats = [];
+  if (chats) {
+    filteredChats = chats.filter((chat) => {
+      if (chat.participants && chat.participants.length > 0) {
+        const participant = chat.participants[0];
+        const fullName = `${participant.first_name} ${participant.last_name}`;
+        return fullName.toLowerCase().includes(searchQuery.toLowerCase());
+      }
+      return false; // Exclude chats without participants
+    });
+  }
+
+  const renderChatItem = ({ item }) => {
+    if (item.participants && item.participants.length > 0) {
+      const participant = item.participants[0]; // Safely get the first participant
+      return (
+        <TouchableOpacity
+          style={styles.friendCard}
+          onPress={() => {
+            navigation.navigate("ChatDetails", { id: item.chatId });
+          }}
+        >
+          <Image source={{ uri: participant.image }} style={styles.avatar} />
+          <View style={styles.infoContainer}>
+            <Text
+              style={styles.name}
+            >{`${participant.first_name} ${participant.last_name}`}</Text>
+            <Text style={styles.status}>{item?.lastMessage?.text}</Text>
+          </View>
+        </TouchableOpacity>
+      );
+    } else {
+      // Handle missing participants
+      return (
+        <View style={styles.friendCard}>
+          <Text style={styles.name}>Unknown Participant</Text>
+        </View>
+      );
+    }
+  };
+
   return (
     <View style={styles.container}>
       <TextInput
         style={styles.searchInput}
         placeholder="Search friends..."
         value={searchQuery}
-        onChangeText={(text) => setSearchQuery(text)}
+        onChangeText={setSearchQuery}
       />
-      <FlatList
-        data={filteredFriends}
-        keyExtractor={(item) => item.id}
-        renderItem={renderFriendItem}
-        contentContainerStyle={styles.listContainer}
-      />
+
+      {chats ? (
+        <FlatList
+          data={filteredChats} // Use filtered chats here
+          keyExtractor={(item) => item.chatId.toString()} // Ensure chatId is a string
+          renderItem={renderChatItem}
+          contentContainerStyle={styles.listContainer}
+          showsVerticalScrollIndicator={false} // Hide vertical scroll indicator
+        />
+      ) : (
+        <Text>Loading...</Text>
+      )}
     </View>
   );
 };
@@ -120,13 +99,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#f0f2f5",
     padding: 10,
-  },
-  header: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#333",
-    marginBottom: 20,
-    textAlign: "center",
   },
   searchInput: {
     width: "100%",

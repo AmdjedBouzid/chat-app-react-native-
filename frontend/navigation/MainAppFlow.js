@@ -1,84 +1,115 @@
 import React from "react";
 import { createStackNavigator } from "@react-navigation/stack";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import Chats from "../screens/Chats";
 import ChatDetails from "../screens/chatDetailes";
 import Profile from "../screens/Profile";
-// import Users from "../screens/Users";
 import NotificationsPage from "../screens/notificationScreen";
-import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import TestUploadScreen from "../screens/testScreen";
+import UsersPage from "../screens/UsersScreen";
+import MaterialIcons from "react-native-vector-icons/MaterialIcons";
+import { statesContainer } from "../context/GlobalState";
+
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
-import MaterialIcons from "react-native-vector-icons/MaterialIcons";
+
+const headerOptions = {
+  headerStyle: { backgroundColor: "#D9EAFD" },
+  headerTintColor: "darkblue",
+  headerTitleStyle: { fontSize: 18, fontWeight: "bold" },
+  headerShown: true,
+};
+
+const tabOptions = {
+  tabBarActiveTintColor: "blue",
+  tabBarInactiveTintColor: "gray",
+  tabBarStyle: { backgroundColor: "#D9EAFD" },
+  tabBarHideOnKeyboard: true,
+};
 
 const ChatsStack = () => (
-  <Stack.Navigator>
+  <Stack.Navigator screenOptions={headerOptions}>
     <Stack.Screen name="Chats" component={Chats} options={{ title: "Chats" }} />
     <Stack.Screen
       name="ChatDetails"
       component={ChatDetails}
-      options={{ title: "Chat Details", headerShown: true }}
+      options={{ title: "Chat Details" }}
     />
   </Stack.Navigator>
 );
-const MainAppFlow = () => (
-  <Tab.Navigator>
-    <Tab.Screen
-      name="Chat"
-      component={ChatsStack}
-      options={{
-        title: "Notifications",
-        tabBarIcon: ({ color, size }) => (
-          <MaterialIcons name="notifications" color={color} size={size} />
-        ),
-        headerShown: false,
-      }}
-    />
-    <Tab.Screen
-      name="notifications"
-      component={NotificationsPage}
-      options={{
-        title: "Notifications",
-        tabBarIcon: ({ color, size }) => (
-          <MaterialIcons name="notifications" color={color} size={size} />
-        ),
-        tabBarLabel: "Requests",
-        tabBarBadge: 5,
-        tabBarBadgeStyle: { backgroundColor: "red", color: "#D9EAFD" },
-        tabBarActiveTintColor: "blue",
-        tabBarInactiveTintColor: "gray",
-        tabBarStyle: { backgroundColor: "#D9EAFD" },
-        headerShown: true,
-        headerStyle: { backgroundColor: "#D9EAFD" },
-        headerTintColor: "darkblue",
-        headerTitleStyle: { fontSize: 18, fontWeight: "bold" },
-        tabBarHideOnKeyboard: true,
-      }}
-    />
 
-    <Tab.Screen
-      name="Profile"
-      component={Profile}
-      options={{
-        title: "Profile",
-        tabBarIcon: ({ color, size }) => (
-          <MaterialIcons name="notifications" color={color} size={size} />
-        ),
-        tabBarLabel: "Profile",
-        // tabBarBadge: 5,
-        tabBarBadgeStyle: { backgroundColor: "red", color: "#D9EAFD" },
-        tabBarActiveTintColor: "blue",
-        tabBarInactiveTintColor: "gray",
-        tabBarStyle: { backgroundColor: "#D9EAFD" },
-        headerShown: true,
-        headerStyle: { backgroundColor: "#D9EAFD" },
-        headerTintColor: "darkblue",
-        headerTitleStyle: { fontSize: 18, fontWeight: "bold" },
-        tabBarHideOnKeyboard: true,
-      }}
+const UsersStack = () => (
+  <Stack.Navigator screenOptions={headerOptions}>
+    <Stack.Screen
+      name="UsersScreen"
+      component={UsersPage}
+      options={{ title: "Users" }}
     />
-    {/* <Tab.Screen name="test" component={TestUploadScreen} /> */}
-  </Tab.Navigator>
+    <Stack.Screen
+      name="ChatDetails"
+      component={ChatDetails}
+      options={{ title: "Chat Details" }}
+    />
+  </Stack.Navigator>
 );
+
+const MainAppFlow = () => {
+  const { notifications } = statesContainer();
+  const n = notifications.length;
+
+  return (
+    <Tab.Navigator screenOptions={{ ...tabOptions, headerShown: false }}>
+      <Tab.Screen
+        name="Chat"
+        component={ChatsStack}
+        options={{
+          title: "Chats",
+          tabBarIcon: ({ color, size }) => (
+            <MaterialIcons name="chat" color={color} size={size} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Users"
+        component={UsersStack}
+        options={{
+          title: "Users",
+          tabBarIcon: ({ color, size }) => (
+            <MaterialIcons name="group" color={color} size={size} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Notifications"
+        component={NotificationsPage}
+        options={{
+          title: "Notifications",
+          tabBarIcon: ({ color, size }) => (
+            <MaterialIcons name="notifications" color={color} size={size} />
+          ),
+          headerShown: true,
+          headerStyle: { backgroundColor: "#D9EAFD" },
+          headerTintColor: "darkblue",
+          headerTitleStyle: { fontSize: 18, fontWeight: "bold" },
+          tabBarBadge: n > 0 ? n : undefined,
+          tabBarBadgeStyle: { backgroundColor: "red", color: "#D9EAFD" },
+        }}
+      />
+      <Tab.Screen
+        name="Profile"
+        component={Profile}
+        options={{
+          title: "Profile",
+          tabBarIcon: ({ color, size }) => (
+            <MaterialIcons name="person" color={color} size={size} />
+          ),
+          headerShown: true,
+          headerStyle: { backgroundColor: "#D9EAFD" },
+          headerTintColor: "darkblue",
+          headerTitleStyle: { fontSize: 18, fontWeight: "bold" },
+        }}
+      />
+    </Tab.Navigator>
+  );
+};
 
 export default MainAppFlow;

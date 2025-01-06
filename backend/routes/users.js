@@ -26,11 +26,6 @@ router.post(
   asyncHandler(async (req, res) => {
     const secondUserId = req.params.id;
     const token = req.headers.authorization?.split(" ")[1];
-    // console.log("token________", token);
-
-    if (!token) {
-      return res.status(401).json({ message: "No token provided." });
-    }
 
     const currentUserId = getCurrentUserId(req, res);
 
@@ -40,7 +35,6 @@ router.post(
         .json({ message: "Users cannot be friends with themselves." });
     }
 
-    // Check if the friendship already exists
     const [existingFriendship] = await db.query(
       "SELECT * FROM friends WHERE (iduser1 = ? AND iduser2 = ?) OR (iduser1 = ? AND iduser2 = ?)",
       [currentUserId, secondUserId, secondUserId, currentUserId]
@@ -106,13 +100,13 @@ router.get(
 
 router.post("/me", upload.single("image"), async (req, res) => {
   try {
-    console.log(req.body);
+    // console.log(req.body);
     const id = getCurrentUserId(req, res); // Assume this retrieves the user ID correctly
     if (!id) return res.status(401).json({ message: "Unauthorized" });
     const { first_name, last_name, email, birth_date, bio } = req.body;
-    console.log(req.body);
+    // console.log(req.body);
     const imagePath = req.file ? req.file.path : null;
-    console.log(imagePath);
+    // console.log(imagePath);
 
     if (!req.file) {
       return res.status(400).json({ message: "No file uploaded." });
@@ -160,4 +154,52 @@ router.post("/me", upload.single("image"), async (req, res) => {
       .json({ message: "An error occurred while updating the user profile." });
   }
 });
+
+router.get("/all", async (req, res) => {
+  try {
+    const [users] = await db.query(
+      "SELECT id , first_name , last_name ,  image ,   bio ,  birth_date FROM user"
+    );
+    res.status(200).json({ message: "users fetched successfully", users });
+  } catch (error) {
+    console.error(error);
+    return res
+      .status(500)
+      .json({ message: "An error occurred while  the users" });
+  }
+});
+
+router.get("/friends", async (req, res) => {
+  try {
+    const ID = getCurrentUserId(req, res); // Assuming this function retrieves the current user's ID
+    // console.log(ID);
+
+    const [friends] = await db.query(
+      `
+      SELECT 
+        u.id, 
+        u.first_name, 
+        u.last_name, 
+        u.image, 
+        u.bio, 
+        u.birth_date 
+      FROM 
+        friends f
+      JOIN 
+        user u 
+      ON 
+        (f.idUser1 = ? AND f.idUser2 = u.id) OR (f.idUser2 = ? AND f.idUser1 = u.id)
+      `,
+      [ID, ID]
+    );
+
+    res.status(200).json({ message: "Friends fetched successfully", friends });
+  } catch (error) {
+    console.error(error);
+    return res
+      .status(500)
+      .json({ message: "An error occurred while fetching the friends" });
+  }
+});
+
 module.exports = router;
