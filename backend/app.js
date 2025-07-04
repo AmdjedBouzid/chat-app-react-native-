@@ -30,7 +30,7 @@ app.use("/api/chats", chatsRoute);
 app.use("/api/messages", messagesRoute);
 app.use("/", (req, res) => {
   console.log(req);
-  return res.status(200).send("Welcome to my stylish page!");
+  return res.status(200).send("Welcome to my stylish page!!!!!!!!!!!!!!!");
 });
 
 module.exports = app;

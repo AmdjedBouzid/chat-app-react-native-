@@ -1,7 +1,8 @@
 const validate = () => (req, res, next) => {
   try {
-    next();
+    req.user = next();
   } catch (err) {}
+  next();
 };
 
 module.exports = { validate };
